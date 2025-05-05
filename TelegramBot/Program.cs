@@ -52,16 +52,22 @@ async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, Cancel
     if (update.Type == UpdateType.Message && update.Message?.Text is { } text)
     {
         var user = update.Message.From;
-        var username = string.IsNullOrEmpty(user.Username) ? $"{user.FirstName} {user.LastName}" : $"@{user.Username}";
+        var username = string.IsNullOrEmpty(user.Username)
+            ? $"{user.FirstName} {user.LastName}"
+            : $"@{user.Username}";
         var prompt = text;
+        var userTime = update.Message.Date.ToLocalTime();
 
-        Console.WriteLine($"\nПользователь {username} написал: {prompt}\n");
+        Console.WriteLine($"\n[{userTime:HH:mm:ss}] Пользователь {username} написал: {prompt}\n");
 
+        var start = DateTime.Now;
         var reply = await AskOpenRouterAsync(prompt);
+        var end = DateTime.Now;
+        var duration = end - start;
 
         await botClient.SendTextMessageAsync(update.Message.Chat.Id, reply, cancellationToken: token);
 
-        Console.WriteLine($"Бот ответил пользователю {username}: {reply}\n");
+        Console.WriteLine($"[{end:HH:mm:ss}] Бот ответил пользователю {username} за {duration.TotalSeconds:F1} сек: {reply}\n");
     }
 }
 
